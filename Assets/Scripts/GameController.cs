@@ -14,8 +14,8 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private Text numBowlOFBalls_cost, numBowlOFBalls_text;
 
-    [SerializeField]
-    private float timeSpawn;
+    public float timeSpawn;
+
     [SerializeField]
     private int numBowlOFBalls = 0;
     [SerializeField]
@@ -26,11 +26,12 @@ public class GameController : MonoBehaviour
     private float[] xSpawnBall = new float[5];
 
     private GameObject ball;
-    private int coins = 0, reward_ads_mult;
+    private int  reward_ads_mult;
     private bool reward_is_obtain, yandex_is_on;
 
     public UnityEvent isInitialized_event;
-    public Shop shop;
+    private Shop shop;
+    public int coins = 0;
 
     private void Start()
     {
@@ -40,16 +41,17 @@ public class GameController : MonoBehaviour
 
         shop = GetComponent<Shop>();
 
-        Set_text();
+        
 
-        timeSpawn = 0.5f;
+        timeSpawn = 2f;
+        Set_text();
 
         StartCoroutineCreateBall(shop.numPlaceSpawn);
 
         Bridge.Initialize(OnBridgeInitializationCompleted);
     }
 
-    public IEnumerator CreateBall(int index)
+   public IEnumerator CreateBall(int index)
     {
         while (true)
         {
@@ -96,14 +98,24 @@ public class GameController : MonoBehaviour
                 DataClass dataObject = JsonUtility.FromJson<DataClass>(data);
                 coins  = dataObject.coins;
                 numBowlOFBalls = dataObject.numBowlOFBalls;
+                shop.numPlaceSpawn = dataObject.numPlaceSpawn;
+
+                timeSpawn = dataObject.timeSpawn;
+
+                if (shop.numPlaceSpawn>=5)
+                {
+                    shop.numPlaceSpawnButton.gameObject.SetActive(false);
+                }
             }
             else 
             {
                 coins = 0;
                 numBowlOFBalls = 0;
+                shop.numPlaceSpawn = 0;
+                timeSpawn = 2f;
             }  
         }
-
+        shop.SetText();
         Set_text();
      }
 
@@ -135,6 +147,8 @@ public class GameController : MonoBehaviour
             DataClass dataObject = new DataClass();
             dataObject.coins = coins;
             dataObject.numBowlOFBalls = numBowlOFBalls;
+            dataObject.numPlaceSpawn = shop.numPlaceSpawn;
+            dataObject.timeSpawn = timeSpawn;
             string data = JsonUtility.ToJson(dataObject);
             Bridge.game.SetData("data", data, success =>
             {
@@ -214,4 +228,6 @@ public class DataClass
 {
     public int coins;
     public int numBowlOFBalls;
+    public int numPlaceSpawn;
+    public float timeSpawn;
 }
